@@ -7,11 +7,29 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Environment and local secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Dependencies and generated builds
 node_modules
 dist
 dist-ssr
 lib
+coverage
+*.tgz
+*.tsbuildinfo
+.cache
+.vite
 *.local
+
+# Deployment state
+.vercel
 
 # Editor directories and files
 .vscode/*

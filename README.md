@@ -175,6 +175,18 @@ Run every repository check with:
 npm run check
 ```
 
+## Deploy the tester to Vercel
+
+Import the GitHub repository into Vercel and use:
+
+- Framework preset: **Vite**
+- Build command: `npm run build:tester`
+- Output directory: `dist`
+
+No environment variables are required. Vercel provides HTTPS, which satisfies
+WebHID's secure-context requirement. Device permission must still be requested
+from a user click.
+
 ## Source layout
 
 ```text
