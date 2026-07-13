@@ -7,6 +7,7 @@ import {
   type Vec2,
   type Vec3,
 } from '../diagnostics/usePS5ControllerDiagnostic'
+import { ControllerConnectDialog } from './ControllerConnectDialog'
 import { DeveloperGuide } from './DeveloperGuide'
 
 const clamp = (value: number, min: number, max: number) =>
@@ -175,6 +176,7 @@ export function DualSenseDiagnostic() {
   const diagnostic = usePS5ControllerDiagnostic()
   const [copied, setCopied] = useState(false)
   const [activeTab, setActiveTab] = useState<'tester' | 'developers'>('tester')
+  const [connectDialogOpen, setConnectDialogOpen] = useState(false)
   const {
     webHIDSupported,
     secureContext,
@@ -310,6 +312,27 @@ export function DualSenseDiagnostic() {
     }
   }
 
+  const findController = () => {
+    setConnectDialogOpen(true)
+    if (
+      webHIDSupported &&
+      secureContext &&
+      !snapshot.connected &&
+      !diagnostic.connecting
+    ) {
+      void diagnostic.connect()
+    }
+  }
+
+  const continueToTests = () => {
+    setConnectDialogOpen(false)
+    window.requestAnimationFrame(() => {
+      document
+        .querySelector('#controller-tests')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
+
   return (
     <main>
       <header className="topbar">
@@ -367,19 +390,14 @@ export function DualSenseDiagnostic() {
             <button
               type="button"
               className="primary-action"
-              onClick={diagnostic.connect}
-              disabled={
-                !webHIDSupported ||
-                !secureContext ||
-                diagnostic.connecting ||
-                snapshot.connected
-              }
+              onClick={findController}
+              disabled={diagnostic.connecting}
             >
               {snapshot.connected
-                ? 'DualSense connected'
+                ? `Connected · ${snapshot.transport}`
                 : diagnostic.connecting
-                  ? 'Waiting for permission…'
-                  : 'Connect DualSense'}
+                  ? 'Waiting for selection…'
+                  : 'Find PS5 controller'}
             </button>
             <button
               type="button"
@@ -448,7 +466,7 @@ export function DualSenseDiagnostic() {
         </div>
       </section>
 
-      <section className="section-block">
+      <section className="section-block" id="controller-tests">
         <div className="section-heading">
           <div>
             <span className="eyebrow">01 / DEVICE</span>
@@ -825,6 +843,18 @@ export function DualSenseDiagnostic() {
       ) : (
         <DeveloperGuide />
       )}
+
+      <ControllerConnectDialog
+        open={connectDialogOpen}
+        connecting={diagnostic.connecting}
+        error={diagnostic.error}
+        webHIDSupported={webHIDSupported}
+        secureContext={secureContext}
+        snapshot={snapshot}
+        onConnect={() => void diagnostic.connect()}
+        onClose={() => setConnectDialogOpen(false)}
+        onContinue={continueToTests}
+      />
 
       <footer>
         <span>PS5 CONTROLLER TESTER / WEBHID PACKAGE</span>

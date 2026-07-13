@@ -140,7 +140,8 @@ and physical output confirmations.
 1. Disconnect the USB cable.
 2. Hold **Create** and the **PS logo button** until the blue lights flash.
 3. Connect **DualSense Wireless Controller** in macOS Bluetooth settings.
-4. Select **Connect DualSense** in the tester and approve the WebHID prompt.
+4. Select **Find PS5 controller**, then choose the controller in Chrome's
+   secure WebHID picker.
 
 Bluetooth supports the package inputs, motion sensors, adaptive triggers, and
 haptic output.
