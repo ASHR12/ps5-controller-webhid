@@ -77,7 +77,7 @@ export function ControllerConnectDialog({
           <i />
           <div className={connected ? 'complete' : 'current'}>
             <span>2</span>
-            <small>Select device</small>
+            <small>Grant access</small>
           </div>
           <i />
           <div className={connected ? 'complete' : ''}>
@@ -157,16 +157,17 @@ export function ControllerConnectDialog({
                 <p>
                   Hold <strong>Create + PS</strong> until the blue lights flash,
                   then connect <strong>DualSense Wireless Controller</strong> in
-                  your Bluetooth settings.
+                  your Bluetooth settings. Previously approved controllers
+                  reconnect automatically when switched on.
                 </p>
               </article>
               <article>
-                <span>Browser permission</span>
-                <h3>Select it in Chrome’s secure picker</h3>
+                <span>First-time permission</span>
+                <h3>Approve controller access once</h3>
                 <p>
-                  Choose <strong>DualSense Wireless Controller</strong> in the
-                  popup. This site filters the list to compatible PS5
-                  controllers.
+                  If this browser has not been approved before, continue to
+                  Chrome’s secure chooser and select{' '}
+                  <strong>DualSense Wireless Controller</strong>.
                 </p>
               </article>
             </div>
@@ -193,13 +194,15 @@ export function ControllerConnectDialog({
                 onClick={onConnect}
                 disabled={connecting}
               >
-                {connecting ? 'Waiting for selection…' : 'Open controller picker'}
+                {connecting
+                  ? 'Chrome picker open…'
+                  : 'Allow controller access'}
               </button>
             </div>
             <p className="native-picker-note">
-              The final device list is controlled by Chrome for security. The
-              website never receives access until you select and approve a
-              controller.
+              Chrome controls the first-time chooser, so websites cannot style
+              or move it. After approval, this controller reconnects
+              automatically without showing the chooser again.
             </p>
           </>
         )}

@@ -314,14 +314,6 @@ export function DualSenseDiagnostic() {
 
   const findController = () => {
     setConnectDialogOpen(true)
-    if (
-      webHIDSupported &&
-      secureContext &&
-      !snapshot.connected &&
-      !diagnostic.connecting
-    ) {
-      void diagnostic.connect()
-    }
   }
 
   const continueToTests = () => {
