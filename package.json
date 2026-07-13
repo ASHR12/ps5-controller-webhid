@@ -1,0 +1,78 @@
+{
+  "name": "ps5-controller-webhid",
+  "version": "0.1.0",
+  "description": "Unofficial typed WebHID implementation for PS5 DualSense controllers.",
+  "license": "MIT",
+  "keywords": [
+    "dualsense",
+    "controller",
+    "tester",
+    "webhid",
+    "gamepad",
+    "playstation"
+  ],
+  "type": "module",
+  "main": "./lib/index.cjs",
+  "module": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.cjs"
+    },
+    "./react": {
+      "types": "./lib/react.d.ts",
+      "import": "./lib/react.js",
+      "require": "./lib/react.cjs"
+    }
+  },
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run build:package && npm run typecheck && npm run build:tester",
+    "build:package": "tsup",
+    "build:tester": "vite build",
+    "lint": "oxlint",
+    "typecheck": "tsc -b --pretty",
+    "check": "npm run lint && npm run typecheck && npm run build:package && npm run build:tester",
+    "pack:check": "npm pack --dry-run",
+    "preview": "vite preview",
+    "prepublishOnly": "npm run check"
+  },
+  "dependencies": {
+    "dualsense-ts": "^6.15.38"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "esbuild": "^0.28.1",
+    "oxlint": "^1.71.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "tsup": "^8.5.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1"
+  }
+}
