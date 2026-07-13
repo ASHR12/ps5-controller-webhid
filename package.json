@@ -2,7 +2,16 @@
   "name": "ps5-controller-webhid",
   "version": "0.1.0",
   "description": "Unofficial typed WebHID implementation for PS5 DualSense controllers.",
+  "author": "ASHR12",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ASHR12/ps5-controller-webhid.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ASHR12/ps5-controller-webhid/issues"
+  },
+  "homepage": "https://github.com/ASHR12/ps5-controller-webhid#readme",
   "keywords": [
     "dualsense",
     "controller",
