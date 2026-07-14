@@ -9,11 +9,16 @@ reports or guessing browser gamepad indexes.
 The repository also includes **PS5 Controller Tester**, a live utility that
 consumes the exact same public client exported by the package.
 
+**npm package:** [npmjs.com/package/ps5-controller-webhid](https://www.npmjs.com/package/ps5-controller-webhid)
+
 ## Install
 
 ```bash
 npm install ps5-controller-webhid
 ```
+
+The npm page contains the latest version, dependency details, integrity
+information, and downloadable package files.
 
 The package is browser-only and requires WebHID in a secure context
 (`localhost` or HTTPS).
@@ -72,9 +77,11 @@ the owning application shuts down.
 
 ### Complete React + Vite example
 
-See [`examples/react-vite`](examples/react-vite) for a standalone application
-that installs the published npm package and displays live buttons, sticks,
-triggers, motion, device details, and haptic controls.
+See the
+[`examples/react-vite` integration](https://github.com/ASHR12/ps5-controller-webhid/tree/main/examples/react-vite)
+for a standalone application that installs the published npm package and
+displays live buttons, sticks, triggers, motion, device details, and haptic
+controls.
 
 ## Outputs
 

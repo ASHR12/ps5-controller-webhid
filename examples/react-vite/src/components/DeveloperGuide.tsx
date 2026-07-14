@@ -202,9 +202,9 @@ export function DeveloperGuide() {
           <span className="eyebrow">DEVELOPER GUIDE / PACKAGE API</span>
           <h1>Install once. Read every PS5 controller signal by name.</h1>
           <p>
-            The tester and npm package use the same PS5Controller class. When a
-            capability passes in the tester, this is the API path your
-            application will use.
+            This example runs against the installed npm package. Every
+            diagnostic above uses the same public PS5Controller API shown in
+            these copy-ready integration patterns.
           </p>
           <div className="developer-badges">
             <span>Typed API</span>
@@ -217,11 +217,10 @@ export function DeveloperGuide() {
       </section>
 
       <aside className="package-notice">
-        <strong>Published on npm</strong>
+        <strong>Installed from npm</strong>
         <p>
-          The latest release is publicly available. Install it with the
-          command above, then use either the framework-independent or React
-          API.
+          This standalone app resolves public version 0.1.0 from its own
+          node_modules, without aliases to the package repository source.
         </p>
       </aside>
 

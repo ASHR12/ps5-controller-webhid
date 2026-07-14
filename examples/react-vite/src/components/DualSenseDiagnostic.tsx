@@ -279,7 +279,7 @@ export function DualSenseDiagnostic() {
       tool: {
         name: 'PS5 Controller Tester',
         package: 'ps5-controller-webhid',
-        version: '0.1.1',
+        version: '0.1.0',
       },
       generatedAt: new Date().toISOString(),
       userAgent: navigator.userAgent,
@@ -331,13 +331,13 @@ export function DualSenseDiagnostic() {
         <div className="brand">
           <div>
             <strong>PS5 CONTROLLER</strong>
-            <small>WebHID implementation &amp; tester</small>
+            <small>npm package integration example</small>
           </div>
         </div>
         {activeTab === 'tester' ? (
           <StatusPill tone={overallTone}>{overallLabel}</StatusPill>
         ) : (
-          <StatusPill tone="idle">PACKAGE v0.1.1</StatusPill>
+          <StatusPill tone="idle">PACKAGE v0.1.0</StatusPill>
         )}
       </header>
 
@@ -366,17 +366,17 @@ export function DualSenseDiagnostic() {
         <>
       <section className="hero-panel">
         <div className="hero-copy">
-          <span className="eyebrow">OPEN-SOURCE / WEBHID UTILITY</span>
-          <h1>Inspect every signal from your PS5 controller.</h1>
+          <span className="eyebrow">NPM INSTALLATION / REACT + VITE</span>
+          <h1>Build on every signal from your PS5 controller.</h1>
           <p>
-            Test controls, motion sensors, adaptive triggers, and haptic
-            feedback directly in your browser. Everything runs locally, with
-            no account, upload, or native software.
+            This real-world example installs <code>ps5-controller-webhid</code>
+            from npm, then builds complete input diagnostics, motion previews,
+            adaptive-trigger checks, and haptic controls on its public API.
           </p>
           <div className="utility-tags" aria-label="Project highlights">
             <span>Bluetooth + USB</span>
-            <span>Local only</span>
-            <span>MIT licensed</span>
+            <span>Published npm package</span>
+            <span>Local browser data</span>
           </div>
           <div className="hero-actions">
             <button
@@ -407,7 +407,7 @@ export function DualSenseDiagnostic() {
         </div>
         <div className="hero-product-art" aria-hidden="true">
           <img src="/ps5-controller-hero.jpg" alt="" />
-          <span>DualSense hardware diagnostics</span>
+          <span>Installed package · live diagnostics</span>
         </div>
         <div className="test-summary">
           <div className="test-score">

@@ -1,6 +1,6 @@
 {
   "name": "ps5-controller-webhid",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Unofficial typed WebHID implementation for PS5 DualSense controllers.",
   "author": "ASHR12",
   "license": "MIT",
