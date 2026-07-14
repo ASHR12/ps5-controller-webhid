@@ -279,7 +279,7 @@ export function DualSenseDiagnostic() {
       tool: {
         name: 'PS5 Controller Tester',
         package: 'ps5-controller-webhid',
-        version: '0.1.0',
+        version: '0.1.1',
       },
       generatedAt: new Date().toISOString(),
       userAgent: navigator.userAgent,
@@ -337,7 +337,7 @@ export function DualSenseDiagnostic() {
         {activeTab === 'tester' ? (
           <StatusPill tone={overallTone}>{overallLabel}</StatusPill>
         ) : (
-          <StatusPill tone="idle">PACKAGE v0.1.0</StatusPill>
+          <StatusPill tone="idle">PACKAGE v0.1.1</StatusPill>
         )}
       </header>
 

@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "ps5-controller-webhid": "^0.1.0",
+    "ps5-controller-webhid": "^0.1.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

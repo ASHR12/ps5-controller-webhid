@@ -219,7 +219,7 @@ export function DeveloperGuide() {
       <aside className="package-notice">
         <strong>Installed from npm</strong>
         <p>
-          This standalone app resolves public version 0.1.0 from its own
+          This standalone app resolves public version 0.1.1 from its own
           node_modules, without aliases to the package repository source.
         </p>
       </aside>
