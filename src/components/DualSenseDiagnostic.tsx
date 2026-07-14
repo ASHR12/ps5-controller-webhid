@@ -72,7 +72,7 @@ function Stick({
           style={
             {
               '--stick-x': `${x * 43}%`,
-              '--stick-y': `${y * 43}%`,
+              '--stick-y': `${-y * 43}%`,
             } as CSSProperties
           }
         />

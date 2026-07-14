@@ -70,6 +70,12 @@ export function ControllerStatus() {
 Create one client outside the component render path and call `dispose()` when
 the owning application shuts down.
 
+### Complete React + Vite example
+
+See [`examples/react-vite`](examples/react-vite) for a standalone application
+that installs the published npm package and displays live buttons, sticks,
+triggers, motion, device details, and haptic controls.
+
 ## Outputs
 
 ```ts
@@ -99,7 +105,7 @@ controller.resetOutputs()
 `PS5ControllerState` includes:
 
 - `connected`, `transport`, and report capability status
-- `sticks.left/right.x/y` from `-1` to `1`
+- `sticks.left/right.x/y` from `-1` to `1` (`+x` right, `+y` up)
 - `triggers.left/right` from `0` to `1`
 - named digital inputs in `buttons`
 - calibrated gyroscope and accelerometer axes

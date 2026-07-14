@@ -278,7 +278,7 @@ export function DeveloperGuide() {
           <article>
             <span>Analog</span>
             <code>sticks.left/right.x/y</code>
-            <small>−1 to 1</small>
+            <small>−1 to 1 · +x right · +y up</small>
             <code>triggers.left/right</code>
             <small>0 to 1</small>
           </article>

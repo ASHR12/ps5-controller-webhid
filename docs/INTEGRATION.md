@@ -188,7 +188,7 @@ experience. `dispose()` also resets outputs.
 Important normalized fields:
 
 - `connected`, `transport`, `limited`
-- `sticks.left/right.x/y` — `-1` to `1`
+- `sticks.left/right.x/y` — `-1` to `1` (`+x` right, `+y` up)
 - `triggers.left/right` — `0` to `1`
 - `buttons` — every named DualSense digital input
 - `motion.gyro` — normalized raw axes; multiply by `2000` for degrees/second
