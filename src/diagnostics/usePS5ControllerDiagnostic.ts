@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  Brightness,
   ChargeStatus,
   PS5Controller,
   TriggerEffect,
@@ -7,6 +8,8 @@ import {
   getDualSenseSupport,
   type DualSenseButton,
   type DualSenseSnapshot,
+  type MuteLedMode,
+  type RGBColor,
   type Vec2,
   type Vec3,
 } from 'ps5-controller-webhid'
@@ -56,11 +59,23 @@ export interface CalibrationResult {
 export interface OutputResults {
   haptics: OutputResult
   triggers: OutputResult
+  lights: OutputResult
 }
 
 export interface OutputAttempts {
   haptics: boolean
   triggers: boolean
+  lights: boolean
+}
+
+export interface LightSettings {
+  lightbar: RGBColor
+  /** Health slider position from 0 to 100. */
+  health: number
+  playerLeds: number
+  brightness: Brightness
+  /** `null` while the controller manages the mute LED. */
+  muteLed: MuteLedMode | null
 }
 
 const makeButtonState = (): ButtonState =>
@@ -83,6 +98,26 @@ const INITIAL_CALIBRATION: CalibrationResult = {
   noiseRms: null,
   message: 'Not checked in this session.',
 }
+
+const DEFAULT_LIGHTS: LightSettings = {
+  lightbar: { r: 0, g: 0, b: 255 },
+  health: 100,
+  playerLeds: 0,
+  brightness: Brightness.High,
+  muteLed: null,
+}
+
+const CLEARED_LIGHTS: LightSettings = {
+  ...DEFAULT_LIGHTS,
+  lightbar: { r: 0, g: 0, b: 0 },
+}
+
+/** Full health is green, half is yellow, and empty is red. */
+const healthColor = (health: number): RGBColor => ({
+  r: 255 * Math.min(1, 2 * (1 - health)),
+  g: 255 * Math.min(1, 2 * health),
+  b: 0,
+})
 
 const magnitude2 = ({ x, y }: Vec2) => Math.hypot(x, y)
 const magnitude3 = ({ x, y, z }: Vec3) => Math.hypot(x, y, z)
@@ -152,11 +187,14 @@ export function usePS5ControllerDiagnostic() {
   const [outputResults, setOutputResults] = useState<OutputResults>({
     haptics: 'untested',
     triggers: 'untested',
+    lights: 'untested',
   })
   const [outputAttempts, setOutputAttempts] = useState<OutputAttempts>({
     haptics: false,
     triggers: false,
+    lights: false,
   })
+  const [lights, setLights] = useState<LightSettings>(DEFAULT_LIGHTS)
   const [runningTest, setRunningTest] = useState<RunningTest>(null)
   const [connecting, setConnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -251,7 +289,10 @@ export function usePS5ControllerDiagnostic() {
         if (isCurrent()) {
           client.resetOutputs()
           runningRef.current = null
-          if (mountedRef.current) setRunningTest(null)
+          if (mountedRef.current) {
+            setRunningTest(null)
+            setLights(CLEARED_LIGHTS)
+          }
         }
       }
     },
@@ -309,7 +350,55 @@ export function usePS5ControllerDiagnostic() {
     runningRef.current = null
     setRunningTest(null)
     clientRef.current?.resetOutputs()
+    setLights(CLEARED_LIGHTS)
   }, [])
+
+  const updateLights = useCallback(
+    (changes: Partial<LightSettings>) => {
+      const client = clientRef.current
+      if (!client?.current.connected) {
+        setError('Connect the DualSense before testing outputs.')
+        return
+      }
+
+      const next = { ...lights, ...changes }
+      if (changes.lightbar) client.setLightbar(next.lightbar)
+      if (changes.playerLeds !== undefined || changes.brightness !== undefined) {
+        client.setPlayerLeds(next.playerLeds, next.brightness)
+      }
+      if (changes.muteLed != null) client.setMuteLed(changes.muteLed)
+      setLights(next)
+      setOutputAttempts((current) => ({ ...current, lights: true }))
+    },
+    [lights],
+  )
+
+  const setLightbarColor = useCallback(
+    (lightbar: RGBColor) => updateLights({ lightbar }),
+    [updateLights],
+  )
+
+  const setHealth = useCallback(
+    (health: number) =>
+      updateLights({ health, lightbar: healthColor(health / 100) }),
+    [updateLights],
+  )
+
+  const togglePlayerLed = useCallback(
+    (index: number) =>
+      updateLights({ playerLeds: lights.playerLeds ^ (1 << index) }),
+    [lights.playerLeds, updateLights],
+  )
+
+  const setPlayerLedBrightness = useCallback(
+    (brightness: Brightness) => updateLights({ brightness }),
+    [updateLights],
+  )
+
+  const setMuteLed = useCallback(
+    (muteLed: MuteLedMode) => updateLights({ muteLed }),
+    [updateLights],
+  )
 
   const confirmOutput = useCallback(
     (output: keyof OutputResults, result: Exclude<OutputResult, 'untested'>) => {
@@ -401,8 +490,12 @@ export function usePS5ControllerDiagnostic() {
 
   const resetObserved = useCallback(() => {
     setObserved(EMPTY_OBSERVED)
-    setOutputResults({ haptics: 'untested', triggers: 'untested' })
-    setOutputAttempts({ haptics: false, triggers: false })
+    setOutputResults({
+      haptics: 'untested',
+      triggers: 'untested',
+      lights: 'untested',
+    })
+    setOutputAttempts({ haptics: false, triggers: false, lights: false })
     setCalibration(INITIAL_CALIBRATION)
   }, [])
 
@@ -415,6 +508,7 @@ export function usePS5ControllerDiagnostic() {
     calibration,
     outputResults,
     outputAttempts,
+    lights,
     runningTest,
     connecting,
     error,
@@ -422,6 +516,11 @@ export function usePS5ControllerDiagnostic() {
     testHaptics,
     testTriggers,
     resetOutputs,
+    setLightbarColor,
+    setHealth,
+    togglePlayerLed,
+    setPlayerLedBrightness,
+    setMuteLed,
     confirmOutput,
     calibrate,
     recenterOrientation,

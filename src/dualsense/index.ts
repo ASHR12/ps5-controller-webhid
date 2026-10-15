@@ -1,4 +1,10 @@
-export { ChargeStatus, TriggerEffect } from 'dualsense-ts'
+export {
+  Brightness,
+  ChargeStatus,
+  MuteLedMode,
+  PlayerID,
+  TriggerEffect,
+} from 'dualsense-ts'
 export type { TriggerFeedbackConfig } from 'dualsense-ts'
 
 export {
@@ -23,6 +29,7 @@ export type {
   DualSenseSupport,
   DualSenseTransport,
   ErrorListener,
+  RGBColor,
   SnapshotListener,
   TouchPoint,
   Vec2,

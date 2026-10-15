@@ -180,8 +180,65 @@ controller.setTriggerFeedback('right', {
 controller.resetTriggerFeedback()
 ```
 
+## Lightbar and LEDs
+
+```ts
+import {
+  Brightness,
+  MuteLedMode,
+  PlayerID,
+} from 'ps5-controller-webhid'
+
+// Lightbar color, 0–255 per channel.
+controller.setLightbar({ r: 255, g: 64, b: 0 })
+
+// Five player LEDs from a 5-bit mask; bit 0 is the leftmost LED.
+controller.setPlayerLeds(PlayerID.Player1) // center LED, high brightness
+controller.setPlayerLeds(0b10001, Brightness.Low) // outer LEDs, dimmed
+
+// Override the mute button LED: Off, On, or Pulse.
+controller.setMuteLed(MuteLedMode.Pulse)
+```
+
+- The same calls work over USB and Bluetooth.
+- Lights can be set before `connect()` and are re-applied after a reconnect.
+- Only changes are sent to the controller, so calling `setLightbar()` every
+  frame is fine.
+- Lightbar channels are clamped to `0`–`255` and rounded. `setPlayerLeds()`
+  throws a `RangeError` for a mask outside `0`–`31` or an unknown brightness,
+  and `setMuteLed()` throws one for an unknown mode.
+- By default the controller toggles the mute LED with the mute button.
+  `resetOutputs()` hands an overridden mute LED back to it.
+- `RGBColor` types a `{ r, g, b }` color.
+
+Show health on the lightbar, from green at full through yellow to red:
+
+```ts
+// health: 0 (empty) to 1 (full)
+function showHealth(health: number) {
+  controller.setLightbar({
+    r: 255 * Math.min(1, 2 * (1 - health)),
+    g: 255 * Math.min(1, 2 * health),
+    b: 0,
+  })
+}
+
+function frame() {
+  showHealth(player.health / player.maxHealth)
+  requestAnimationFrame(frame)
+}
+```
+
+## Resetting outputs
+
 Call `resetOutputs()` when pausing, losing focus, disconnecting, or leaving the
-experience. `dispose()` also resets outputs.
+experience. It stops haptics and clears adaptive-trigger effects. Since 0.2.0
+it also turns the lightbar off and clears the player LEDs, and a mute LED set
+with `setMuteLed()` is switched off and handed back to the controller. Set the
+lights again when play resumes; a game that sets the lightbar from its frame
+loop does this automatically.
+
+`dispose()` resets every output the same way.
 
 ## Snapshot reference
 

@@ -1,5 +1,7 @@
 import {
+  Brightness,
   Dualsense,
+  MuteLedMode,
   WebHIDProvider,
   type TriggerFeedbackConfig,
 } from 'dualsense-ts'
@@ -10,11 +12,21 @@ import {
   type DualSenseSnapshot,
   type DualSenseSupport,
   type ErrorListener,
+  type RGBColor,
   type SnapshotListener,
 } from './types'
 
 const degrees = (radians: number) => (radians * 180) / Math.PI
 const clamp = (value: number) => Math.min(1, Math.max(0, value))
+const colorChannel = (value: number) =>
+  Number.isNaN(value) ? 0 : Math.round(Math.min(255, Math.max(0, value)))
+const PLAYER_LED_BRIGHTNESS = [
+  Brightness.High,
+  Brightness.Medium,
+  Brightness.Low,
+]
+const MUTE_LED_MODES = [MuteLedMode.Off, MuteLedMode.On, MuteLedMode.Pulse]
+const OUTPUT_FLUSH_MS = 100
 const wait = (milliseconds: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, milliseconds))
 
@@ -137,6 +149,21 @@ function readController(controller: Dualsense): DualSenseSnapshot {
 }
 
 /**
+ * dualsense-ts marks the player LED field as valid in every lightbar report
+ * but leaves it zeroed, so a lightbar-only update would switch the player LEDs
+ * off. Queue the current player LED state first so each lightbar report
+ * carries it.
+ */
+function keepPlayerLedsInLightbarReports(controller: Dualsense): void {
+  const { hid, playerLeds } = controller
+  const setLightbar = hid.setLightbar.bind(hid)
+  hid.setLightbar = (r, g, b, pulse) => {
+    hid.setPlayerLeds(playerLeds.bitmask, playerLeds.brightness)
+    setLightbar(r, g, b, pulse)
+  }
+}
+
+/**
  * Framework-independent DualSense WebHID client.
  *
  * PS5 Controller Tester uses this exact class for its hardware tests. Games
@@ -168,6 +195,7 @@ export class DualSenseClient {
         right: { analog: { deadzone: options.stickDeadzone ?? 0.04 } },
         orientation: { beta: options.orientationBeta ?? 0.08 },
       })
+      keepPlayerLedsInLightbarReports(this.controller)
       this.controller.hid.on('error', (error) => this.publishError(error))
       this.unsubscribeConnection = this.controller.hid.onConnectionChange(() =>
         this.publishSnapshot(),
@@ -265,11 +293,64 @@ export class DualSenseClient {
     this.controller?.resetTriggerFeedback()
   }
 
-  /** Stop haptics and clear adaptive-trigger effects. */
+  /**
+   * Set the lightbar color. Channels are clamped to 0–255 and rounded. The
+   * color can be set before connecting and is re-applied after a reconnect;
+   * only changes are sent, so calling this every frame is fine.
+   */
+  setLightbar(color: RGBColor): void {
+    this.controller?.lightbar.set({
+      r: colorChannel(color.r),
+      g: colorChannel(color.g),
+      b: colorChannel(color.b),
+    })
+  }
+
+  /**
+   * Light the five player LEDs from a bitmask, bit 0 being the leftmost LED.
+   * `PlayerID` holds the console's player patterns. Throws a RangeError for a
+   * mask outside 0–31 or an unknown brightness.
+   */
+  setPlayerLeds(mask: number, brightness: Brightness = Brightness.High): void {
+    if (!Number.isInteger(mask) || mask < 0 || mask > 0b11111) {
+      throw new RangeError('Player LED mask must be an integer from 0 to 31.')
+    }
+    if (!PLAYER_LED_BRIGHTNESS.includes(brightness)) {
+      throw new RangeError('Player LED brightness must be a Brightness value.')
+    }
+    if (!this.controller) return
+    this.controller.playerLeds.set(mask)
+    this.controller.playerLeds.setBrightness(brightness)
+  }
+
+  /**
+   * Override the mute button LED, which the controller otherwise toggles when
+   * the mute button is pressed. Throws a RangeError for an unknown mode.
+   */
+  setMuteLed(mode: MuteLedMode): void {
+    if (!MUTE_LED_MODES.includes(mode)) {
+      throw new RangeError('Mute LED mode must be a MuteLedMode value.')
+    }
+    this.controller?.mute.setLed(mode)
+  }
+
+  /**
+   * Stop haptics, clear adaptive-trigger effects, turn the lightbar off, and
+   * clear the player LEDs. A mute LED set by `setMuteLed()` is switched off
+   * and handed back to the controller.
+   */
   resetOutputs(): void {
     if (!this.controller) return
     this.controller.rumble(0)
     this.controller.resetTriggerFeedback()
+    this.controller.lightbar.set({ r: 0, g: 0, b: 0 })
+    this.controller.playerLeds.clear()
+    this.controller.playerLeds.setBrightness(Brightness.High)
+    if (this.controller.mute.ledMode !== undefined) {
+      // dualsense-ts's resetLed() sends nothing, so switch the LED off first.
+      this.controller.hid.setMicrophoneLED(MuteLedMode.Off)
+      this.controller.mute.resetLed()
+    }
   }
 
   /** Set the controller's current fused orientation as the session neutral. */
@@ -288,8 +369,11 @@ export class DualSenseClient {
     this.unsubscribeConnection?.()
     this.unsubscribeConnection = null
     this.resetOutputs()
-    this.controller?.dispose()
+    const controller = this.controller
     this.controller = null
+    // dualsense-ts sends outputs from two 30 Hz timers (output loop, then HID
+    // write) that its dispose() stops, so let them deliver the reset first.
+    setTimeout(() => controller?.dispose(), OUTPUT_FLUSH_MS)
     this.snapshotListeners.clear()
     this.errorListeners.clear()
   }

@@ -38,6 +38,13 @@ export interface Vec3 {
   z: number
 }
 
+/** Lightbar color with each channel from 0 to 255. */
+export interface RGBColor {
+  r: number
+  g: number
+  b: number
+}
+
 export interface TouchPoint extends Vec2 {
   active: boolean
   id: number

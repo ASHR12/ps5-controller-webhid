@@ -125,6 +125,7 @@ export function FlightInput() {
 
 const OUTPUTS = `import {
   PS5Controller,
+  PlayerID,
   TriggerEffect,
 } from 'ps5-controller-webhid'
 
@@ -144,17 +145,40 @@ controller.setTriggerFeedback('right', {
   strength: 0.85,
 })
 
+// Lightbar color (0–255 per channel) and player LEDs.
+controller.setLightbar({ r: 255, g: 64, b: 0 })
+controller.setPlayerLeds(PlayerID.Player1)
+
 // Always clear physical effects on exit or pause.
+// This also turns the lightbar off and clears the LEDs.
 controller.resetOutputs()`
+
+const HEALTH_LIGHTBAR = `// health: 0 (empty) to 1 (full).
+// Green at full, yellow at half, red when empty.
+function showHealth(health: number) {
+  controller.setLightbar({
+    r: 255 * Math.min(1, 2 * (1 - health)),
+    g: 255 * Math.min(1, 2 * health),
+    b: 0,
+  })
+}
+
+// Channels are clamped and rounded, and only
+// changes are sent, so call it every frame.
+showHealth(player.health / player.maxHealth)`
 
 const PACKAGE_EXPORTS = `import {
   PS5Controller,
   getDualSenseSupport,
   DUALSENSE_BUTTONS,
   TriggerEffect,
+  PlayerID,
+  Brightness,
+  MuteLedMode,
   type PS5ControllerState,
   type PS5ControllerButton,
   type PS5ControllerOptions,
+  type RGBColor,
 } from 'ps5-controller-webhid'
 
 import {
@@ -332,14 +356,18 @@ export function DeveloperGuide() {
         <div className="developer-section-heading">
           <span>05</span>
           <div>
-            <h2>Haptics and adaptive triggers</h2>
+            <h2>Haptics, triggers, and lights</h2>
             <p>
               Physical output methods are typed and bounded. Reset effects when
-              pausing, changing scenes, or leaving the page.
+              pausing, changing scenes, or leaving the page; resetting also
+              turns the lightbar off and clears the LEDs.
             </p>
           </div>
         </div>
-        <CodeBlock title="Physical outputs" code={OUTPUTS} />
+        <div className="developer-code-grid">
+          <CodeBlock title="Physical outputs" code={OUTPUTS} />
+          <CodeBlock title="Health on the lightbar" code={HEALTH_LIGHTBAR} />
+        </div>
       </section>
 
       <section className="developer-section">

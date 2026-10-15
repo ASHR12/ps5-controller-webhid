@@ -403,7 +403,7 @@ h3 {
   display: grid;
   grid-column: 1 / -1;
   grid-row: 2;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 7px;
 }
 
@@ -1060,6 +1060,138 @@ h3 {
   border-color: rgba(255, 120, 131, 0.42);
   color: var(--red);
   background: var(--red-soft);
+}
+
+.lights-card {
+  grid-column: 1 / -1;
+  min-height: 0;
+}
+
+.lights-card p {
+  max-width: 720px;
+  min-height: 0;
+}
+
+.light-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.light-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  margin: 0;
+  padding: 16px 18px 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.light-group legend {
+  padding: 0 6px;
+  color: var(--cyan);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.light-group input:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.light-group small {
+  color: var(--dim);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.light-color {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.light-color input {
+  width: 52px;
+  height: 34px;
+  padding: 2px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.light-color code {
+  color: var(--text);
+  font-size: 11px;
+}
+
+.light-health {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.light-health strong {
+  color: var(--cyan);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-weight: 600;
+}
+
+.light-health input {
+  width: 100%;
+  accent-color: var(--cyan);
+}
+
+.player-leds {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.player-leds button {
+  width: 32px;
+  height: 10px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: #070b0f;
+}
+
+.player-leds button.lit {
+  border-color: #f2fbff;
+  background: #f2fbff;
+  box-shadow: 0 0 12px rgba(242, 251, 255, 0.6);
+}
+
+.light-options {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 6px;
+}
+
+.light-options button {
+  min-height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 10px;
+}
+
+.light-options button.selected {
+  border-color: rgba(103, 230, 255, 0.48);
+  color: var(--cyan);
+  background: var(--cyan-soft);
 }
 
 .final-result {
@@ -2020,7 +2152,8 @@ footer {
   }
 
   .motion-grid,
-  .output-grid {
+  .output-grid,
+  .light-controls {
     grid-template-columns: 1fr;
   }
 

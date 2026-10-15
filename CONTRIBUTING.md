@@ -15,6 +15,9 @@ Before opening a pull request:
 npm run check
 ```
 
+This runs lint, type-checking, the unit tests, and both builds. The unit tests
+mock `dualsense-ts` and need no controller; run them alone with `npm test`.
+
 ## Hardware changes
 
 Changes involving WebHID output must:

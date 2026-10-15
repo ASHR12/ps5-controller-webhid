@@ -3,8 +3,8 @@
 **Unofficial, typed WebHID implementation for PS5 DualSense controllers.**
 
 Use named buttons, sticks, triggers, motion sensors, touch contacts, battery
-state, adaptive triggers, and haptic feedback without implementing Sony HID
-reports or guessing browser gamepad indexes.
+state, adaptive triggers, haptic feedback, the lightbar, and the player LEDs
+without implementing Sony HID reports or guessing browser gamepad indexes.
 
 The repository also includes **PS5 Controller Tester**, a live utility that
 consumes the exact same public client exported by the package.
@@ -87,7 +87,10 @@ controls.
 
 ```ts
 import {
+  Brightness,
+  MuteLedMode,
   PS5Controller,
+  PlayerID,
   TriggerEffect,
 } from 'ps5-controller-webhid'
 
@@ -102,10 +105,41 @@ controller.setTriggerFeedback('right', {
   strength: 0.85,
 })
 
+controller.setLightbar({ r: 255, g: 64, b: 0 })
+controller.setPlayerLeds(PlayerID.Player1, Brightness.Medium)
+controller.setMuteLed(MuteLedMode.Pulse)
+
 controller.resetOutputs()
 ```
 
-`dispose()` also stops haptics and resets both adaptive triggers.
+- `setLightbar({ r, g, b })` sets the lightbar color. Channels run from `0` to
+  `255` and are clamped and rounded.
+- `setPlayerLeds(mask, brightness?)` lights the five player LEDs from a 5-bit
+  mask, bit 0 being the leftmost LED. `PlayerID` holds the console's player
+  patterns; `Brightness` is `High` (default), `Medium`, or `Low`. A mask
+  outside `0`–`31` throws a `RangeError`.
+- `setMuteLed(mode)` overrides the mute button LED with `MuteLedMode.Off`,
+  `On`, or `Pulse`.
+
+Lights can be set before the controller connects and are re-applied after a
+reconnect. Only changes are sent, so a game can set the lightbar every frame,
+for example to show health from green to red:
+
+```ts
+// health: 0 (empty) to 1 (full)
+function showHealth(health: number) {
+  controller.setLightbar({
+    r: 255 * Math.min(1, 2 * (1 - health)),
+    g: 255 * Math.min(1, 2 * health),
+    b: 0,
+  })
+}
+```
+
+`resetOutputs()` stops haptics and resets both adaptive triggers. Since 0.2.0
+it also turns the lightbar off and clears the player LEDs, and a mute LED set
+with `setMuteLed()` is switched off and handed back to the controller.
+`dispose()` resets every output the same way.
 
 ## Normalized state
 
@@ -133,7 +167,7 @@ See [`docs/INTEGRATION.md`](docs/INTEGRATION.md) for:
 - React subscription patterns
 - React Three Fiber and Rapier flight input
 - complete state units and ranges
-- haptic and adaptive-trigger examples
+- haptic, adaptive-trigger, lightbar, and LED examples
 - lifecycle and cleanup requirements
 
 ## Run the tester
@@ -183,7 +217,13 @@ The tester production build is separate:
 npm run build:tester
 ```
 
-Run every repository check with:
+Run the unit tests, which mock `dualsense-ts` and need no controller:
+
+```bash
+npm test
+```
+
+Run every repository check, including the tests, with:
 
 ```bash
 npm run check

@@ -1,4 +1,5 @@
 import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { Brightness, MuteLedMode, type RGBColor } from 'ps5-controller-webhid'
 import {
   BUTTONS,
   formatChargeStatus,
@@ -12,6 +13,31 @@ import { DeveloperGuide } from './DeveloperGuide'
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value))
+
+const toHex = ({ r, g, b }: RGBColor) =>
+  `#${[r, g, b]
+    .map((channel) => Math.round(channel).toString(16).padStart(2, '0'))
+    .join('')}`
+
+const fromHex = (hex: string): RGBColor => ({
+  r: Number.parseInt(hex.slice(1, 3), 16),
+  g: Number.parseInt(hex.slice(3, 5), 16),
+  b: Number.parseInt(hex.slice(5, 7), 16),
+})
+
+const PLAYER_LED_INDEXES = [0, 1, 2, 3, 4]
+
+const BRIGHTNESS_OPTIONS = [
+  { value: Brightness.High, label: 'High' },
+  { value: Brightness.Medium, label: 'Medium' },
+  { value: Brightness.Low, label: 'Low' },
+]
+
+const MUTE_LED_OPTIONS = [
+  { value: MuteLedMode.Off, label: 'Off' },
+  { value: MuteLedMode.On, label: 'On' },
+  { value: MuteLedMode.Pulse, label: 'Pulse' },
+]
 
 function StatusPill({
   tone,
@@ -141,17 +167,19 @@ function Vector({
 }
 
 function Confirmation({
+  prompt = 'Did you feel it?',
   value,
   disabled,
   onChange,
 }: {
+  prompt?: string
   value: OutputResult
   disabled: boolean
   onChange: (value: 'pass' | 'fail') => void
 }) {
   return (
     <div className="confirmation" aria-label="Confirm physical result">
-      <span>Did you feel it?</span>
+      <span>{prompt}</span>
       <button
         type="button"
         className={value === 'pass' ? 'selected pass' : ''}
@@ -184,6 +212,7 @@ export function DualSenseDiagnostic() {
     observed,
     calibration,
     outputResults,
+    lights,
   } = diagnostic
 
   const seenButtonCount = BUTTONS.filter(
@@ -239,6 +268,11 @@ export function DualSenseDiagnostic() {
         label: 'Haptic feedback',
         detail: 'Physical pulse pattern confirmed',
       },
+      {
+        passed: outputResults.lights === 'pass',
+        label: 'Lights',
+        detail: 'Lightbar and LEDs confirmed',
+      },
     ],
     [
       calibration.status,
@@ -250,6 +284,7 @@ export function DualSenseDiagnostic() {
       observed.rightStick,
       observed.rightTrigger,
       outputResults.haptics,
+      outputResults.lights,
       outputResults.triggers,
       secureContext,
       snapshot.connected,
@@ -260,8 +295,7 @@ export function DualSenseDiagnostic() {
   )
 
   const passedTests = tests.filter(({ passed }) => passed).length
-  const explicitFailure =
-    outputResults.haptics === 'fail' || outputResults.triggers === 'fail'
+  const explicitFailure = Object.values(outputResults).includes('fail')
   const allRequiredTestsPassed = tests.every(({ passed }) => passed)
   const overallTone = allRequiredTestsPassed
     ? 'pass'
@@ -273,13 +307,14 @@ export function DualSenseDiagnostic() {
     : explicitFailure
       ? 'OUTPUT TEST FAILED'
       : 'TESTING INCOMPLETE'
+  const lightsDisabled = !snapshot.connected || diagnostic.runningTest !== null
 
   const copyReport = async () => {
     const report = {
       tool: {
         name: 'PS5 Controller Tester',
         package: 'ps5-controller-webhid',
-        version: '0.1.1',
+        version: '0.2.0',
       },
       generatedAt: new Date().toISOString(),
       userAgent: navigator.userAgent,
@@ -337,7 +372,7 @@ export function DualSenseDiagnostic() {
         {activeTab === 'tester' ? (
           <StatusPill tone={overallTone}>{overallLabel}</StatusPill>
         ) : (
-          <StatusPill tone="idle">PACKAGE v0.1.1</StatusPill>
+          <StatusPill tone="idle">PACKAGE v0.2.0</StatusPill>
         )}
       </header>
 
@@ -369,9 +404,9 @@ export function DualSenseDiagnostic() {
           <span className="eyebrow">OPEN-SOURCE / WEBHID UTILITY</span>
           <h1>Inspect every signal from your PS5 controller.</h1>
           <p>
-            Test controls, motion sensors, adaptive triggers, and haptic
-            feedback directly in your browser. Everything runs locally, with
-            no account, upload, or native software.
+            Test controls, motion sensors, lights, adaptive triggers, and
+            haptic feedback directly in your browser. Everything runs locally,
+            with no account, upload, or native software.
           </p>
           <div className="utility-tags" aria-label="Project highlights">
             <span>Bluetooth + USB</span>
@@ -714,8 +749,9 @@ export function DualSenseDiagnostic() {
           </button>
         </div>
         <p className="section-lead">
-          Run each test, then tell the diagnostic what you physically felt.
-          Effects always stop automatically.
+          Run each test, then tell the diagnostic what you physically felt or
+          saw. Haptic and trigger effects stop automatically; lights stay on
+          until the next reset.
         </p>
         <div className="output-grid">
           <article className="panel output-card">
@@ -772,6 +808,111 @@ export function DualSenseDiagnostic() {
               onChange={(result) =>
                 diagnostic.confirmOutput('triggers', result)
               }
+            />
+          </article>
+          <article className="panel output-card lights-card">
+            <span className="output-number">C</span>
+            <span className="panel-kicker">Light output</span>
+            <h3>Lightbar and LEDs</h3>
+            <p>
+              Pick a lightbar color or drag health from full to empty, light
+              the player LEDs, and override the mute LED. With player LEDs on,
+              dragging health should leave them lit.
+            </p>
+            <div className="light-controls">
+              <fieldset className="light-group" disabled={lightsDisabled}>
+                <legend>Lightbar</legend>
+                <label className="light-color">
+                  <input
+                    type="color"
+                    value={toHex(lights.lightbar)}
+                    onChange={(event) =>
+                      diagnostic.setLightbarColor(fromHex(event.target.value))
+                    }
+                  />
+                  <code>{toHex(lights.lightbar)}</code>
+                </label>
+                <label className="light-health">
+                  <span>
+                    Health <strong>{lights.health}%</strong>
+                  </span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={lights.health}
+                    onChange={(event) =>
+                      diagnostic.setHealth(Number(event.target.value))
+                    }
+                  />
+                </label>
+              </fieldset>
+              <fieldset className="light-group" disabled={lightsDisabled}>
+                <legend>Player LEDs</legend>
+                <div className="player-leds">
+                  {PLAYER_LED_INDEXES.map((index) => {
+                    const lit = (lights.playerLeds & (1 << index)) !== 0
+                    return (
+                      <button
+                        key={index}
+                        type="button"
+                        className={lit ? 'lit' : ''}
+                        aria-label={`Player LED ${index + 1}`}
+                        aria-pressed={lit}
+                        onClick={() => diagnostic.togglePlayerLed(index)}
+                      />
+                    )
+                  })}
+                </div>
+                <div
+                  className="light-options"
+                  role="group"
+                  aria-label="Player LED brightness"
+                >
+                  {BRIGHTNESS_OPTIONS.map(({ value, label }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      className={lights.brightness === value ? 'selected' : ''}
+                      aria-pressed={lights.brightness === value}
+                      onClick={() => diagnostic.setPlayerLedBrightness(value)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              <fieldset className="light-group" disabled={lightsDisabled}>
+                <legend>Mute LED</legend>
+                <div
+                  className="light-options"
+                  role="group"
+                  aria-label="Mute LED mode"
+                >
+                  {MUTE_LED_OPTIONS.map(({ value, label }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      className={lights.muteLed === value ? 'selected' : ''}
+                      aria-pressed={lights.muteLed === value}
+                      onClick={() => diagnostic.setMuteLed(value)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <small>
+                  {lights.muteLed === null
+                    ? 'The controller toggles it with the mute button.'
+                    : 'Overridden until the next reset.'}
+                </small>
+              </fieldset>
+            </div>
+            <Confirmation
+              prompt="Did the lights match?"
+              value={outputResults.lights}
+              disabled={!diagnostic.outputAttempts.lights}
+              onChange={(result) => diagnostic.confirmOutput('lights', result)}
             />
           </article>
         </div>

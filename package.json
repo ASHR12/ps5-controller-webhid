@@ -1,6 +1,6 @@
 {
   "name": "ps5-controller-webhid",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Unofficial typed WebHID implementation for PS5 DualSense controllers.",
   "author": "ASHR12",
   "license": "MIT",
@@ -52,7 +52,8 @@
     "build:tester": "vite build",
     "lint": "oxlint",
     "typecheck": "tsc -b --pretty",
-    "check": "npm run lint && npm run typecheck && npm run build:package && npm run build:tester",
+    "test": "vitest run",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run build:package && npm run build:tester",
     "pack:check": "npm pack --dry-run",
     "preview": "vite preview",
     "prepublishOnly": "npm run check"
@@ -79,7 +80,8 @@
     "react-dom": "^19.2.7",
     "tsup": "^8.5.1",
     "typescript": "~6.0.2",
-    "vite": "^8.1.1"
+    "vite": "^8.1.1",
+    "vitest": "^5.0.5"
   },
   "overrides": {
     "esbuild": "^0.28.1"
